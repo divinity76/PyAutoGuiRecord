@@ -146,6 +146,9 @@ def record_mouse_and_keyboard_events():
 
 def record_active_window():
     pass
+    if not hasattr(pyautogui, "getActiveWindowTitle"):
+        print("pyautogui.getActiveWindowTitle() not available. Please install pygetwindow. Some features unavailable.")
+        return
     old_title = None
     while True:
         title = pyautogui.getActiveWindowTitle()
@@ -171,8 +174,11 @@ if __name__ == "__main__":
     mouse_and_keyboard_recorder_thread.start()
     record_active_window_thread = threading.Thread(target=record_active_window)
     record_active_window_thread.start()
-    record_active_window_thread.join()
-    mouse_and_keyboard_recorder_thread.join()
+    try:
+        record_active_window_thread.join()
+        mouse_and_keyboard_recorder_thread.join()
+    except KeyboardInterrupt:
+        _is_shutting_down.set()
     print("------OPTIMIZED VERSION:")
     optimized_log = optimizer(_log)
     for line in optimized_log:
