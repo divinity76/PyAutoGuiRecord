@@ -2,6 +2,7 @@ import pynput
 import threading
 import pyautogui
 import time
+import platform
 
 _is_shutting_down = threading.Event()
 
@@ -107,7 +108,9 @@ def record_mouse_and_keyboard_events():
             #print(f"Mouse clicked at ({x}, {y}) with {button}")
             log("pyautogui.mouseDown(" + str(x) + ", " + str(y) + ", button=" + translate_button(button) + ")")
         else:
-            #print(f"Mouse released at ({x}, {y}) with {button}")
+            if platform.system() == "Linux":
+                # seems like on_scroll does not fire on Linux? workaround:
+                log("pyautogui.moveTo(" + str(x) + ", " + str(y) + ", duration=0.1)")
             log("pyautogui.mouseUp(" + str(x) + ", " + str(y) + ", button=" + translate_button(button) + ")")
         if _is_shutting_down.is_set():
             return False
@@ -176,9 +179,12 @@ if __name__ == "__main__":
     record_active_window_thread.start()
     try:
         record_active_window_thread.join()
+        print("record_active_window_thread finished")
         mouse_and_keyboard_recorder_thread.join()
+        print("mouse_and_keyboard_recorder_thread finished")
     except KeyboardInterrupt:
-        _is_shutting_down.set()
+        pass
+    _is_shutting_down.set()
     print("------OPTIMIZED VERSION:")
     optimized_log = optimizer(_log)
     for line in optimized_log:
